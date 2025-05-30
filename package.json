@@ -1,6 +1,6 @@
 {
   "name": "avr-vad",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Node.js library for Voice Activity Detection using Silero VAD",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -29,7 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "node-fetch": "^2.7.0",
-    "onnxruntime-node": "^1.16.3",
+    "onnxruntime-node": "^1.22.0",
     "wav": "^1.0.2"
   },
   "devDependencies": {
