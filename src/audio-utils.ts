@@ -11,8 +11,8 @@ export class AudioUtils {
         const file = fs.createReadStream(filePath);
         const reader = new wav.Reader();
         
-        let audioData: Buffer[] = [];
-        let format: any = null;
+        const audioData: Buffer[] = [];
+        let format: wav.Format | null = null;
         
         reader.on('format', (fmt) => {
           format = fmt;
@@ -52,7 +52,7 @@ export class AudioUtils {
   /**
    * Convert buffer to Float32Array based on audio format
    */
-  private static bufferToFloat32Array(buffer: Buffer, format: any): Float32Array {
+  private static bufferToFloat32Array(buffer: Buffer, format: wav.Format): Float32Array {
     const { bitDepth, channels } = format;
     let samples: Float32Array;
     

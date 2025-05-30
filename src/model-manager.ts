@@ -75,6 +75,7 @@ export class ModelManager {
       const session = await InferenceSession.create(modelPath);
       
       const inputs = session.inputNames.map(name => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const metadata = (session.inputMetadata as any)[name];
         return {
           name,
@@ -84,6 +85,7 @@ export class ModelManager {
       });
       
       const outputs = session.outputNames.map(name => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const metadata = (session.outputMetadata as any)[name];
         return {
           name,
