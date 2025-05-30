@@ -1,6 +1,6 @@
 {
   "name": "avr-vad",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Node.js library for Voice Activity Detection using Silero VAD",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -9,6 +9,7 @@
     "dev": "ts-node examples/basic-example.ts",
     "inspect": "ts-node scripts/inspect-model.ts",
     "test": "jest",
+    "test-onnx": "node scripts/test-onnx.js",
     "lint": "eslint src/**/*.ts",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build && npm run lint"
@@ -29,7 +30,7 @@
   "license": "MIT",
   "dependencies": {
     "node-fetch": "^2.7.0",
-    "onnxruntime-node": "^1.16.3",
+    "onnxruntime-node": "^1.22.0",
     "wav": "^1.0.2"
   },
   "devDependencies": {
@@ -63,5 +64,14 @@
   "homepage": "https://github.com/agentvoiceresponse/avr-vad#readme",
   "publishConfig": {
     "access": "public"
+  },
+  "config": {
+    "onnxruntime": {
+      "provider": "cpu"
+    }
+  },
+  "optionalDependencies": {},
+  "npm": {
+    "optional": false
   }
 }

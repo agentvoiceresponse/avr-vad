@@ -138,4 +138,24 @@ We recommend configuring branch protection for `master`:
 
 ### Release Not Created
 1. Check that `GITHUB_TOKEN` has the necessary permissions
-2. Verify the tag doesn't already exist 
+2. Verify the tag doesn't already exist
+
+### ONNX Runtime Installation Issues
+If you encounter errors related to `onnxruntime-node` GPU dependencies:
+
+1. **Error message**: `Failed to find runtimes/win-x64/native/libonnxruntime_providers_cuda.so`
+2. **Solution**: This is resolved by:
+   - Using `--omit=optional` flag during installation
+   - Setting environment variables to disable GPU support
+   - Updated to latest `onnxruntime-node` version (1.22.0+)
+
+3. **Local testing**:
+   ```bash
+   npm install --omit=optional
+   npm run build
+   ```
+
+The pipeline automatically handles this by:
+- Omitting optional dependencies
+- Setting CPU-only environment variables
+- Using the latest stable onnxruntime-node version 

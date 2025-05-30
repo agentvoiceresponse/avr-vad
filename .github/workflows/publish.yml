@@ -33,7 +33,13 @@ jobs:
             ${{ runner.os }}-node-
             
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --omit=optional
+        env:
+          # Disable GPU support for onnxruntime-node
+          ORT_DISABLE_DNNL: 1
+          ORT_TENSORRT_UNAVAILABLE: 1
+          # Force CPU-only installation
+          ONNXRUNTIME_PREFER_CPU: 1
         
       - name: Run linting
         run: npm run lint
@@ -43,6 +49,9 @@ jobs:
         
       - name: Build project
         run: npm run build
+        
+      - name: Test ONNX Runtime installation
+        run: npm run test-onnx
         
       - name: Check if version has been updated
         id: check-version
