@@ -1,5 +1,10 @@
 # AVR VAD - Silero Voice Activity Detection for Node.js
 
+![CI/CD Status](https://github.com/agentvoiceresponse/avr-vad/actions/workflows/test.yml/badge.svg)
+![NPM Publish](https://github.com/agentvoiceresponse/avr-vad/actions/workflows/publish.yml/badge.svg)
+![npm version](https://img.shields.io/npm/v/avr-vad.svg)
+![License](https://img.shields.io/npm/l/avr-vad.svg)
+
 🎤 A Node.js library for Voice Activity Detection using the Silero VAD model.
 
 ## ✨ Features
@@ -12,6 +17,7 @@
 - 📊 **Segment extraction**: Automatically identifies speech segments
 - 💾 **Automatic download**: Model is downloaded automatically on first use
 - 📝 **TypeScript**: Fully typed with TypeScript
+- 🤖 **CI/CD**: Automated testing and publishing with GitHub Actions
 
 ## 🚀 Installation
 
@@ -331,6 +337,48 @@ For better real-time performance:
 - Use `frameSize: 1536` (optimal for Silero VAD)
 - Consider higher `threshold` to reduce false positives
 - Process frames in a separate worker thread for critical applications
+
+## 🚀 CI/CD Pipeline
+
+This project uses GitHub Actions for automated testing and publishing:
+
+### 🧪 Automated Testing
+- **Trigger**: Pull requests and pushes to development branches
+- **Tests**: ESLint, Jest, TypeScript compilation
+- **Node.js versions**: 16.x, 18.x, 20.x
+
+### 📦 Automated Publishing
+- **Trigger**: Push to `master` branch
+- **Requirements**: Version bump in `package.json`
+- **Actions**: 
+  - Run full test suite
+  - Publish to npm automatically
+  - Create GitHub release with changelogs
+
+### 🔄 Development Workflow
+
+1. **Create feature branch**:
+   ```bash
+   git checkout -b feature/new-feature
+   ```
+
+2. **Develop and test**:
+   ```bash
+   npm run lint
+   npm test
+   npm run build
+   ```
+
+3. **Create pull request** - Tests run automatically
+
+4. **Before merge, bump version**:
+   ```bash
+   npm version patch  # or minor/major
+   ```
+
+5. **Merge to master** - Automatic publication to npm
+
+See [Deployment Documentation](docs/DEPLOYMENT.md) for detailed CI/CD setup instructions.
 
 ## 📄 License
 
