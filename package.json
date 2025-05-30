@@ -9,7 +9,6 @@
     "dev": "ts-node examples/basic-example.ts",
     "inspect": "ts-node scripts/inspect-model.ts",
     "test": "jest",
-    "test-onnx": "node scripts/test-onnx.js",
     "lint": "eslint src/**/*.ts",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build && npm run lint"
@@ -64,14 +63,5 @@
   "homepage": "https://github.com/agentvoiceresponse/avr-vad#readme",
   "publishConfig": {
     "access": "public"
-  },
-  "config": {
-    "onnxruntime": {
-      "provider": "cpu"
-    }
-  },
-  "optionalDependencies": {},
-  "npm": {
-    "optional": false
   }
 }
