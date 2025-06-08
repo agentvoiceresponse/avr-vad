@@ -7,18 +7,18 @@ async function basicExample() {
   try {
     // Method 1: Quick processing of a WAV file
     console.log('\n📁 Method 1: Quick WAV file processing');
-    // Uncomment when you have a WAV file to test:
-    // const result = await AVRVad.processWavFile('path/to/audio.wav', {
-    //   threshold: 0.5,
-    //   sampleRate: 16000
-    // });
-    // console.log(`Found ${result.segments.length} speech segments`);
+    const result = await AVRVad.processWavFile('./examples/audio/testaudio_8000_test01_20s.wav', {
+      threshold: 0.5,
+      sampleRate: 8000
+    });
+    
+    console.log(`Found ${result.segments.length} speech segments`);
     
     // Method 2: Manual processing with more control
     console.log('\n🔧 Method 2: Manual processing');
     
     const vad = new SileroVAD({
-      sampleRate: 16000,
+      sampleRate: 8000,
       frameSize: 1536, // Silero VAD optimal frame size
       threshold: 0.5,
       minSpeechDurationMs: 250,
@@ -99,7 +99,7 @@ async function basicExample() {
 
 // Generate synthetic audio data for testing
 function generateSampleAudio(): Float32Array {
-  const sampleRate = 16000;
+  const sampleRate = 8000;
   const durationSeconds = 3; // 3 seconds
   const samples = sampleRate * durationSeconds;
   const audio = new Float32Array(samples);
@@ -131,7 +131,7 @@ async function realTimeExample() {
   console.log('\n🔴 Real-time processing simulation');
   
   const vad = new SileroVAD({
-    sampleRate: 16000,
+    sampleRate: 8000,
     frameSize: 1536, // Correct frame size for Silero VAD
     threshold: 0.3
   });
@@ -139,7 +139,7 @@ async function realTimeExample() {
   await vad.initialize();
   
   const frameSize = 1536;
-  const sampleRate = 16000;
+  const sampleRate = 8000;
   const frameDurationMs = (frameSize / sampleRate) * 1000;
   
   console.log(`Frame size: ${frameSize} samples`);

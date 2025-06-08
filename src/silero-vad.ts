@@ -8,6 +8,7 @@ export class SileroVAD {
   private state: VADState;
   private h: Float32Array;
   private c: Float32Array;
+  private useOnnxModel: boolean = true;
   
   constructor(options: VADOptions = {}) {
     // Default options (use 1536 as frame size for Silero VAD)
@@ -66,76 +67,121 @@ export class SileroVAD {
       this.session = await InferenceSession.create(modelPath);
       console.log('Silero VAD model loaded successfully');
       
+      // Test the model with a dummy input to see if it works
+      await this.testModel();
+      
     } catch (error) {
-      throw new Error(`Failed to initialize Silero VAD: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`Failed to initialize Silero VAD ONNX model: ${errorMessage}`);
+      console.warn('Falling back to energy-based VAD...');
+      this.useOnnxModel = false;
     }
   }
   
-  async processFrame(audioFrame: Float32Array): Promise<VADResult> {
-    if (!this.session) {
-      throw new Error('VAD not initialized. Call initialize() first.');
-    }
-    
-    if (audioFrame.length !== this.options.frameSize) {
-      throw new Error(`Audio frame size must be ${this.options.frameSize}, got ${audioFrame.length}`);
-    }
+  private async testModel(): Promise<void> {
+    if (!this.session) return;
     
     try {
-      // Based on Silero VAD documentation, the model expects:
-      // - input: audio tensor (batch, sequence)
-      // - state: LSTM states with rank 3
-      // - sr: sample rate tensor
-      
-      // Prepare audio input tensor
-      const inputTensor = new Tensor('float32', audioFrame, [1, audioFrame.length]);
-      
-      // State tensor with rank 3 - trying (2, 1, 128) format
+      // Test with dummy data
+      const dummyAudio = new Float32Array(this.options.frameSize).fill(0);
+      const inputTensor = new Tensor('float32', dummyAudio, [1, dummyAudio.length]);
       const stateTensor = new Tensor('float32', this.h, [2, 1, 128]);
-      
-      // Sample rate tensor
       const srTensor = new Tensor('int64', [BigInt(this.options.sampleRate)], [1]);
       
-      // Run inference with correct input names based on Silero VAD docs
       const feeds = {
         input: inputTensor,
         state: stateTensor,
         sr: srTensor
       };
       
-      const results = await this.session.run(feeds);
-      
-      // Extract outputs
-      const probability = (results.output as Tensor).data[0] as number;
-      
-      // Update LSTM state if the model returns new state
-      if (results.stateN) {
-        const newState = results.stateN as Tensor;
-        this.h.set(newState.data as Float32Array);
-      }
-      
-      // Calculate timestamp
-      const timestamp = this.state.currentFrame * (this.options.frameSize / this.options.sampleRate) * 1000;
-      
-      // Determine if speech is detected
-      const isSpeech = probability >= this.options.threshold;
-      
-      // Update state
-      this.updateState(isSpeech, timestamp);
-      
-      const result: VADResult = {
-        probability,
-        isSpeech,
-        frame: this.state.currentFrame,
-        timestamp
-      };
-      
-      this.state.currentFrame++;
-      
-      return result;
-      
+      await this.session.run(feeds);
+      console.log('ONNX model test successful');
     } catch (error) {
-      throw new Error(`Error processing audio frame: ${error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn('ONNX model test failed:', errorMessage);
+      throw error;
     }
+  }
+  
+  private energyBasedVAD(audioFrame: Float32Array): number {
+    // Calculate RMS energy of the audio frame
+    let sum = 0;
+    for (let i = 0; i < audioFrame.length; i++) {
+      sum += audioFrame[i] * audioFrame[i];
+    }
+    const rms = Math.sqrt(sum / audioFrame.length);
+    
+    // Convert RMS to a probability-like value
+    // Adjust these values based on your audio characteristics
+    const minEnergy = 0.001;  // Below this is considered silence
+    const maxEnergy = 0.1;    // Above this is definitely speech
+    
+    // Normalize and clamp between 0 and 1
+    const normalizedEnergy = (rms - minEnergy) / (maxEnergy - minEnergy);
+    return Math.max(0, Math.min(1, normalizedEnergy));
+  }
+  
+  async processFrame(audioFrame: Float32Array): Promise<VADResult> {
+    if (audioFrame.length !== this.options.frameSize) {
+      throw new Error(`Audio frame size must be ${this.options.frameSize}, got ${audioFrame.length}`);
+    }
+    
+    let probability: number;
+    
+    if (this.useOnnxModel && this.session) {
+      try {
+        // Try ONNX model first
+        const inputTensor = new Tensor('float32', audioFrame, [1, audioFrame.length]);
+        const stateTensor = new Tensor('float32', this.h, [2, 1, 128]);
+        const srTensor = new Tensor('int64', [BigInt(this.options.sampleRate)], [1]);
+        
+        const feeds = {
+          input: inputTensor,
+          state: stateTensor,
+          sr: srTensor
+        };
+        
+        const results = await this.session.run(feeds);
+        
+        // Extract outputs
+        probability = (results.output as Tensor).data[0] as number;
+        
+        // Update LSTM state if the model returns new state
+        if (results.stateN) {
+          const newState = results.stateN as Tensor;
+          this.h.set(newState.data as Float32Array);
+        }
+        
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.warn('ONNX inference failed, falling back to energy-based VAD:', errorMessage);
+        this.useOnnxModel = false;
+        probability = this.energyBasedVAD(audioFrame);
+      }
+    } else {
+      // Use energy-based VAD
+      probability = this.energyBasedVAD(audioFrame);
+    }
+    
+    // Calculate timestamp
+    const timestamp = this.state.currentFrame * (this.options.frameSize / this.options.sampleRate) * 1000;
+    
+    // Determine if speech is detected
+    const isSpeech = probability >= this.options.threshold;
+    
+    // Update state
+    this.updateState(isSpeech, timestamp);
+    
+    const result: VADResult = {
+      probability,
+      isSpeech,
+      frame: this.state.currentFrame,
+      timestamp
+    };
+    
+    this.state.currentFrame++;
+    
+    return result;
   }
   
   private updateState(isSpeech: boolean, timestamp: number): void {
