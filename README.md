@@ -1,8 +1,9 @@
 # Agent Voice Response - AVR VAD - Silero Voice Activity Detection for Node.js 
 
 [![Discord](https://img.shields.io/discord/1347239846632226998?label=Discord&logo=discord)](https://discord.gg/DFTU69Hg74)
-[![GitHub Repo stars](https://img.shields.io/github/stars/agentvoiceresponse/avr-llm-openai?style=social)](https://github.com/agentvoiceresponse/avr-llm-openai)
-[![Docker Pulls](https://img.shields.io/docker/pulls/agentvoiceresponse/avr-llm-openai?label=Docker%20Pulls&logo=docker)](https://hub.docker.com/r/agentvoiceresponse/avr-llm-openai)
+[![GitHub Repo stars](https://img.shields.io/github/stars/agentvoiceresponse/avr-vad?style=social)](https://github.com/agentvoiceresponse/avr-vad)
+[![npm version](https://img.shields.io/npm/v/avr-vad.svg)](https://www.npmjs.com/package/avr-vad)
+[![npm downloads](https://img.shields.io/npm/dm/avr-vad.svg)](https://www.npmjs.com/package/avr-vad)
 [![Ko-fi](https://img.shields.io/badge/Support%20us%20on-Ko--fi-ff5e5b.svg)](https://ko-fi.com/agentvoiceresponse)
 
 
@@ -348,9 +349,11 @@ For better real-time performance:
 
 ## Support & Community
 
+*   **Website:** [https://agentvoiceresponse.com](https://agentvoiceresponse.com) - Official website.
 *   **GitHub:** [https://github.com/agentvoiceresponse](https://github.com/agentvoiceresponse) - Report issues, contribute code.
 *   **Discord:** [https://discord.gg/DFTU69Hg74](https://discord.gg/DFTU69Hg74) - Join the community discussion.
 *   **Docker Hub:** [https://hub.docker.com/u/agentvoiceresponse](https://hub.docker.com/u/agentvoiceresponse) - Find Docker images.
+*   **NPM:** [https://www.npmjs.com/~agentvoiceresponse](https://www.npmjs.com/~agentvoiceresponse) - Browse our packages.
 *   **Wiki:** [https://wiki.agentvoiceresponse.com/en/home](https://wiki.agentvoiceresponse.com/en/home) - Project documentation and guides.
 
 ## Support AVR
