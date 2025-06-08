@@ -37,6 +37,7 @@ export class AVRVad extends SileroVAD {
         ? AudioUtils.resample(audioData, sampleRate, targetSampleRate)
         : audioData;
       
+      
       // Process audio
       const results = await vad.processAudio(processedAudio);
       const segments = vad.extractSpeechSegments(results, processedAudio);
