@@ -6,18 +6,17 @@
 [![npm downloads](https://img.shields.io/npm/dm/avr-vad.svg)](https://www.npmjs.com/package/avr-vad)
 [![Ko-fi](https://img.shields.io/badge/Support%20us%20on-Ko--fi-ff5e5b.svg)](https://ko-fi.com/agentvoiceresponse)
 
-
 🎤 A Node.js library for Voice Activity Detection using the Silero VAD model.
 
 ## ✨ Features
 
-- 🚀 **Based on Silero VAD**: Uses the pre-trained Silero ONNX model for accurate results
+- 🚀 **Based on Silero VAD**: Uses the pre-trained Silero ONNX model (v5 and legacy versions) for accurate results
 - 🎯 **Real-time processing**: Supports real-time frame-by-frame processing
-- 📁 **WAV file support**: Easily load and process WAV audio files
+- ⚡ **Non-real-time processing**: Batch processing for audio files and streams
 - 🔧 **Configurable**: Customizable thresholds and parameters for different needs
-- 🎵 **Audio processing**: Includes utilities for resampling, normalization, and filtering
-- 📊 **Segment extraction**: Automatically identifies speech segments
-- 💾 **Automatic download**: Model is downloaded automatically on first use
+- 🎵 **Audio processing**: Includes utilities for resampling and audio manipulation
+- 📊 **Multiple models**: Support for both Silero VAD v5 and legacy models
+- 💾 **Bundled models**: Models are included in the package, no external downloads required
 - 📝 **TypeScript**: Fully typed with TypeScript
 
 ## 🚀 Installation
@@ -28,147 +27,170 @@ npm install avr-vad
 
 ## 📖 Quick Start
 
-### Basic Example
-
-```typescript
-import { AVRVad } from 'avr-vad';
-
-// Quick method to process a WAV file
-const result = await AVRVad.processWavFile('path/to/audio.wav', {
-  threshold: 0.5,
-  sampleRate: 16000
-});
-
-console.log(`Found ${result.segments.length} speech segments`);
-result.segments.forEach((segment, i) => {
-  console.log(`Segment ${i + 1}: ${segment.start}ms - ${segment.end}ms`);
-});
-```
-
-### Manual Processing
-
-```typescript
-import { SileroVAD, AudioUtils } from 'avr-vad';
-
-// Initialize the VAD
-const vad = new SileroVAD({
-  sampleRate: 16000,
-  frameSize: 1536,
-  threshold: 0.5,
-  minSpeechDurationMs: 250,
-  maxSilenceDurationMs: 2000
-});
-
-await vad.initialize();
-
-// Load audio file
-const { audioData, sampleRate } = await AudioUtils.loadWavFile('audio.wav');
-
-// Process all audio
-const results = await vad.processAudio(audioData);
-
-// Extract speech segments
-const segments = vad.extractSpeechSegments(results, audioData);
-
-// Clean up
-await vad.dispose();
-```
-
 ### Real-time Processing
 
 ```typescript
-import { SileroVAD } from 'avr-vad';
+import { RealTimeVAD } from 'avr-vad';
 
-const vad = new SileroVAD({
-  sampleRate: 16000,
-  frameSize: 1536,
-  threshold: 0.3
+// Initialize the VAD with default options (Silero v5 model)
+const vad = await RealTimeVAD.new({
+  model: 'v5', // or 'legacy'
+  positiveSpeechThreshold: 0.5,
+  negativeSpeechThreshold: 0.35,
+  preSpeechPadFrames: 1,
+  redemptionFrames: 8,
+  frameSamples: 1536,
+  minSpeechFrames: 3
 });
 
-await vad.initialize();
-
-// In a real-time loop (e.g., from microphone)
-const audioFrame = getAudioFrameFromMicrophone(); // Float32Array of 1536 samples
+// Process audio frames in real-time
+const audioFrame = getAudioFrameFromMicrophone(); // Float32Array of 1536 samples at 16kHz
 const result = await vad.processFrame(audioFrame);
 
-if (result.isSpeech) {
-  console.log(`Speech detected! Confidence: ${(result.probability * 100).toFixed(1)}%`);
-}
+console.log(`Speech probability: ${result.probability}`);
+console.log(`Speech detected: ${result.msg === 'SPEECH_START' || result.msg === 'SPEECH_CONTINUE'}`);
+
+// Clean up when done
+vad.destroy();
+```
+
+### Non-Real-time Processing
+
+```typescript
+import { NonRealTimeVAD } from 'avr-vad';
+
+// Initialize for batch processing
+const vad = await NonRealTimeVAD.new({
+  model: 'v5',
+  positiveSpeechThreshold: 0.5,
+  negativeSpeechThreshold: 0.35
+});
+
+// Process entire audio buffer
+const audioData = loadAudioData(); // Float32Array at 16kHz
+const results = await vad.processAudio(audioData);
+
+// Get speech segments
+const speechSegments = vad.getSpeechSegments(results);
+console.log(`Found ${speechSegments.length} speech segments`);
+
+speechSegments.forEach((segment, i) => {
+  console.log(`Segment ${i + 1}: ${segment.start}ms - ${segment.end}ms`);
+});
+
+// Clean up
+vad.destroy();
 ```
 
 ## ⚙️ Configuration
 
-### VAD Options
+### Real-time VAD Options
 
 ```typescript
-interface VADOptions {
-  /** Audio sample rate (8000 or 16000 Hz) */
-  sampleRate?: 8000 | 16000;
+interface RealTimeVADOptions {
+  /** Model version to use ('v5' | 'legacy') */
+  model?: 'v5' | 'legacy';
   
-  /** Frame size in samples (Silero VAD uses 1536) */
-  frameSize?: 256 | 512 | 768 | 1024 | 1536;
+  /** Threshold for detecting speech start */
+  positiveSpeechThreshold?: number;
   
-  /** Threshold for speech detection (0.0 - 1.0) */
-  threshold?: number;
+  /** Threshold for detecting speech end */
+  negativeSpeechThreshold?: number;
   
-  /** Minimum speech duration in ms */
-  minSpeechDurationMs?: number;
+  /** Frames to include before speech detection */
+  preSpeechPadFrames?: number;
   
-  /** Maximum silence duration in ms */
-  maxSilenceDurationMs?: number;
+  /** Frames to wait before ending speech */
+  redemptionFrames?: number;
   
-  /** Path to custom ONNX model */
-  modelPath?: string;
+  /** Number of samples per frame (usually 1536 for 16kHz) */
+  frameSamples?: number;
+  
+  /** Minimum frames for valid speech */
+  minSpeechFrames?: number;
+}
+```
+
+### Non-Real-time VAD Options
+
+```typescript
+interface NonRealTimeVADOptions {
+  /** Model version to use ('v5' | 'legacy') */
+  model?: 'v5' | 'legacy';
+  
+  /** Threshold for detecting speech start */
+  positiveSpeechThreshold?: number;
+  
+  /** Threshold for detecting speech end */
+  negativeSpeechThreshold?: number;
 }
 ```
 
 ### Default Values
 
 ```typescript
-const defaultOptions = {
-  sampleRate: 16000,
-  frameSize: 1536,
-  threshold: 0.5,
-  minSpeechDurationMs: 250,
-  maxSilenceDurationMs: 2000
+// Real-time VAD defaults
+const defaultRealTimeOptions = {
+  model: 'v5',
+  positiveSpeechThreshold: 0.5,
+  negativeSpeechThreshold: 0.35,
+  preSpeechPadFrames: 1,
+  redemptionFrames: 8,
+  frameSamples: 1536,
+  minSpeechFrames: 3
+};
+
+// Non-real-time VAD defaults
+const defaultNonRealTimeOptions = {
+  model: 'v5',
+  positiveSpeechThreshold: 0.5,
+  negativeSpeechThreshold: 0.35
 };
 ```
 
-## 📊 Results
+## 📊 Results and Messages
 
-### VADResult
+### VAD Messages
+
+The VAD returns different message types to indicate speech state changes:
+
+```typescript
+enum Message {
+  ERROR = 'ERROR',
+  SPEECH_START = 'SPEECH_START',
+  SPEECH_CONTINUE = 'SPEECH_CONTINUE', 
+  SPEECH_END = 'SPEECH_END',
+  SILENCE = 'SILENCE'
+}
+```
+
+### Processing Results
 
 ```typescript
 interface VADResult {
   /** Speech probability (0.0 - 1.0) */
   probability: number;
   
-  /** Speech detection based on threshold */
-  isSpeech: boolean;
+  /** Message indicating speech state */
+  msg: Message;
   
-  /** Frame index */
-  frame: number;
-  
-  /** Timestamp in milliseconds */
-  timestamp: number;
+  /** Audio data if speech segment ended */
+  audio?: Float32Array;
 }
 ```
 
-### AudioSegment
+### Speech Segments
 
 ```typescript
-interface AudioSegment {
-  /** Start time in ms */
+interface SpeechSegment {
+  /** Start time in milliseconds */
   start: number;
   
-  /** End time in ms */
+  /** End time in milliseconds */
   end: number;
   
-  /** Audio data for this segment */
-  audioData: Float32Array;
-  
-  /** Confidence score */
-  confidence: number;
+  /** Speech probability for this segment */
+  probability: number;
 }
 ```
 
@@ -177,99 +199,101 @@ interface AudioSegment {
 The library includes various audio processing utilities:
 
 ```typescript
-import { AudioUtils } from 'avr-vad';
+import { utils, Resampler } from 'avr-vad';
 
-// Load WAV file
-const { audioData, sampleRate } = await AudioUtils.loadWavFile('file.wav');
+// Resample audio to 16kHz (required for VAD)
+const resampler = new Resampler({
+  nativeSampleRate: 44100,
+  targetSampleRate: 16000,
+  targetFrameSize: 1536
+});
 
-// Resample audio
-const resampled = AudioUtils.resample(audioData, 44100, 16000);
+const resampledFrame = resampler.process(audioFrame);
 
-// Normalize audio
-const normalized = AudioUtils.normalize(audioData, 0.95);
-
-// Apply high-pass filter
-const filtered = AudioUtils.highPassFilter(audioData, 80, 16000);
-
-// Create overlapping frames
-const frames = AudioUtils.createFrames(audioData, 1536, 768);
+// Other utilities
+const frameSize = utils.frameSize; // Get frame size for current sample rate
+const audioBuffer = utils.concatArrays([frame1, frame2]); // Concatenate audio arrays
 ```
 
 ## 🎯 Advanced Examples
 
-### Processing with Pre-processing
+### Real-time Speech Detection with Callbacks
 
 ```typescript
-import { SileroVAD, AudioUtils } from 'avr-vad';
+import { RealTimeVAD, Message } from 'avr-vad';
 
-const vad = new SileroVAD({ threshold: 0.4 });
-await vad.initialize();
-
-// Load and preprocess audio
-let { audioData, sampleRate } = await AudioUtils.loadWavFile('noisy_audio.wav');
-
-// Resample if necessary
-if (sampleRate !== 16000) {
-  audioData = AudioUtils.resample(audioData, sampleRate, 16000);
-}
-
-// Apply filter and normalization
-audioData = AudioUtils.highPassFilter(audioData, 80, 16000);
-audioData = AudioUtils.normalize(audioData, 0.9);
-
-// Process with VAD
-const results = await vad.processAudio(audioData);
-const speechSegments = vad.extractSpeechSegments(results, audioData);
-
-console.log(`Speech segments found: ${speechSegments.length}`);
-```
-
-### Real-time Monitoring with Callbacks
-
-```typescript
-import { SileroVAD } from 'avr-vad';
-
-class RealTimeVAD {
-  private vad: SileroVAD;
-  private onSpeechStart?: () => void;
-  private onSpeechEnd?: () => void;
-  private lastSpeechState = false;
+class SpeechDetector {
+  private vad: RealTimeVAD;
+  private onSpeechStart?: (audio: Float32Array) => void;
+  private onSpeechEnd?: (audio: Float32Array) => void;
 
   constructor(callbacks: {
-    onSpeechStart?: () => void;
-    onSpeechEnd?: () => void;
+    onSpeechStart?: (audio: Float32Array) => void;
+    onSpeechEnd?: (audio: Float32Array) => void;
   }) {
-    this.vad = new SileroVAD({ threshold: 0.4 });
     this.onSpeechStart = callbacks.onSpeechStart;
     this.onSpeechEnd = callbacks.onSpeechEnd;
   }
 
   async initialize() {
-    await this.vad.initialize();
+    this.vad = await RealTimeVAD.new({
+      positiveSpeechThreshold: 0.5,
+      negativeSpeechThreshold: 0.35
+      onSpeechStart: this.onSpeechStart,
+      onSpeechEnd: this.onSpeechEnd
+    });
   }
 
   async processFrame(audioFrame: Float32Array) {
     const result = await this.vad.processFrame(audioFrame);
-    
-    // Detect transitions
-    if (result.isSpeech && !this.lastSpeechState) {
-      this.onSpeechStart?.();
-    } else if (!result.isSpeech && this.lastSpeechState) {
-      this.onSpeechEnd?.();
-    }
-    
-    this.lastSpeechState = result.isSpeech;
     return result;
+  }
+
+  destroy() {
+    this.vad?.destroy();
   }
 }
 
 // Usage
-const realTimeVAD = new RealTimeVAD({
-  onSpeechStart: () => console.log('🗣️ Speech started'),
-  onSpeechEnd: () => console.log('🔇 Speech ended')
+const detector = new SpeechDetector({
+  onSpeechStart: (audio) => console.log(`Speech started with ${audio.length} samples`),
+  onSpeechEnd: (audio) => console.log(`Speech ended with ${audio.length} samples`)
 });
 
-await realTimeVAD.initialize();
+await detector.initialize();
+```
+
+### Batch Processing Audio File
+
+```typescript
+import { NonRealTimeVAD, utils } from 'avr-vad';
+import * as fs from 'fs';
+
+async function processAudioFile(filePath: string) {
+  // Load audio data (you'll need your own audio loading logic)
+  const audioData = loadWavFile(filePath); // Float32Array at 16kHz
+  
+  const vad = await NonRealTimeVAD.new({
+    model: 'v5',
+    positiveSpeechThreshold: 0.6,
+    negativeSpeechThreshold: 0.4
+  });
+
+  const results = await vad.processAudio(audioData);
+  const segments = vad.getSpeechSegments(results);
+
+  console.log(`Processing ${filePath}:`);
+  console.log(`Total audio duration: ${(audioData.length / 16000).toFixed(2)}s`);
+  console.log(`Speech segments found: ${segments.length}`);
+  
+  segments.forEach((segment, i) => {
+    const duration = ((segment.end - segment.start) / 1000).toFixed(2);
+    console.log(`  Segment ${i + 1}: ${segment.start}ms - ${segment.end}ms (${duration}s)`);
+  });
+
+  vad.destroy();
+  return segments;
+}
 ```
 
 ## 📝 Development
@@ -291,10 +315,12 @@ npm run build
 npm test
 ```
 
-### Run Examples
+### Scripts
 
 ```bash
-npm run dev
+npm run lint      # Run ESLint
+npm run clean     # Clean build directory
+npm run prepare   # Build before npm install (automatically run)
 ```
 
 ## 📁 Project Structure
@@ -302,44 +328,55 @@ npm run dev
 ```
 avr-vad/
 ├── src/
-│   ├── index.ts           # Main exports
-│   ├── silero-vad.ts      # Main VAD class
-│   ├── model-manager.ts   # ONNX model management
-│   ├── audio-utils.ts     # Audio utilities
-│   └── types.ts           # TypeScript definitions
-├── examples/
-│   └── basic-example.ts   # Usage examples
-├── lib/                   # Compiled files
-└── models/                # Downloaded ONNX models
+│   ├── index.ts                    # Main exports
+│   ├── real-time-vad.ts           # Real-time VAD implementation  
+│   └── common/
+│       ├── index.ts               # Common exports
+│       ├── frame-processor.ts     # Core ONNX processing
+│       ├── non-real-time-vad.ts  # Batch processing VAD
+│       ├── utils.ts               # Utility functions
+│       ├── resampler.ts           # Audio resampling
+│       └── models/                # Model definitions
+├── dist/                          # Compiled JavaScript
+├── test/                          # Test files
+├── silero_vad_v5.onnx            # Silero VAD v5 model
+├── silero_vad_legacy.onnx        # Silero VAD legacy model
+└── package.json
 ```
 
 ## 🔧 Troubleshooting
 
-### Error: Model not found
+### Audio Format Requirements
 
-The Silero VAD model is downloaded automatically on first use. If the download fails:
+The Silero VAD model requires:
+- **Sample rate**: 16kHz
+- **Channels**: Mono (single channel)
+- **Format**: Float32Array with values between -1.0 and 1.0
+- **Frame size**: 1536 samples (96ms at 16kHz)
 
-1. Check your internet connection
-2. Verify write permissions in the project directory
-3. Manually download the model from [Silero VAD Repository](https://github.com/snakers4/silero-vad)
+### Model Selection
 
-### Error: Unsupported sample rate
+- **v5 model**: Latest version with improved accuracy
+- **legacy model**: Original model for compatibility
 
-Silero VAD only supports 8kHz and 16kHz. Use `AudioUtils.resample()` to convert:
+Use the `Resampler` utility to convert audio to the required format:
 
 ```typescript
-const resampled = AudioUtils.resample(audioData, originalSampleRate, 16000);
+import { Resampler } from 'avr-vad';
+
+const resampler = new Resampler({
+  nativeSampleRate: 44100,    // Your audio sample rate
+  targetSampleRate: 16000,    // Required by VAD
+  targetFrameSize: 1536       // Required frame size
+});
 ```
 
-### Real-time Performance
+### Performance Tips
 
-For better real-time performance:
-
-- Use `frameSize: 1536` (optimal for Silero VAD)
-- Consider higher `threshold` to reduce false positives
-- Process frames in a separate worker thread for critical applications
-
-
+- Use appropriate thresholds for your use case
+- Consider using the legacy model for lower resource usage
+- For real-time applications, ensure your audio processing pipeline can handle 16kHz/1536 samples per frame
+- Use `redemptionFrames` to avoid choppy speech detection
 
 ## Acknowledgments
 
@@ -364,4 +401,4 @@ AVR is free and open-source. If you find it valuable, consider supporting its de
 
 ## License
 
-MIT License - see the [LICENSE](LICENSE.md) file for details.
+MIT License - see the [LICENSE.md](LICENSE.md) file for details.
