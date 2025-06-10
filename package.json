@@ -1,6 +1,6 @@
 {
   "name": "avr-vad",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A Node.js library for Voice Activity Detection using Silero VAD",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,10 +8,8 @@
     "build": "./scripts/build.sh",
     "lint": "eslint src/**/*.ts",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run clean && npm run build",
     "test": "mocha test/*.spec.js",
-    "clean": "rm -rf dist",
-    "publish": "npm publish"
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "vad",
