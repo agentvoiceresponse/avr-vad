@@ -8,7 +8,7 @@
     "build": "./scripts/build.sh",
     "lint": "eslint src/**/*.ts",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run build && npm run lint",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "mocha test/*.spec.js",
     "clean": "rm -rf dist",
     "publish": "npm publish"
@@ -46,7 +46,9 @@
     "wav-decoder": "^1.3.0"
   },
   "files": [
-    "lib/**/*",
+    "dist/**/*",
+    "silero_vad_v5.onnx",
+    "silero_vad_legacy.onnx",
     "README.md",
     "LICENSE"
   ],
