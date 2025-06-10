@@ -122,7 +122,7 @@ export class NonRealTimeVAD {
       frameIndex++;
     }
 
-    const { msg, audio } = this.frameProcessor.endSegment((event) => {
+    this.frameProcessor.endSegment((event) => {
       messageContainer.push(event);
     });
     for (const event of messageContainer) {
