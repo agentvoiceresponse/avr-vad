@@ -16,6 +16,12 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+      
+      - name: Set Working Directory
+        run: |
+          WORKING_DIRECTORY='./'
+          echo "WORKING_DIRECTORY=$WORKING_DIRECTORY" >> $GITHUB_ENV
+          echo "Working Directory: $WORKING_DIRECTORY"
 
       - name: Install dependencies
         run: npm ci
@@ -24,11 +30,7 @@ jobs:
         run: npm run build
 
       - name: Publish to npm
-        run: |
-          if [ "${{ github.event.inputs.dry-run }}" == "true" ]; then
-            npm publish --access=public --dry-run
-          else
-            npm publish --access=public
-          fi
+        run: npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ${{ env.WORKING_DIRECTORY }}
