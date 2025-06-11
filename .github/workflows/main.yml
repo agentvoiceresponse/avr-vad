@@ -14,19 +14,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  # o la versione che usi
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test  # o lo script corretto se usi altro (es. `vitest`, `jest`, etc.)
-
       - name: Build project
-        run: npm run build  # opzionale, se hai uno step di build
+        run: npm run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: |
+          if [ "${{ github.event.inputs.dry-run }}" == "true" ]; then
+            npm publish --access=public --dry-run
+          else
+            npm publish --access=public
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

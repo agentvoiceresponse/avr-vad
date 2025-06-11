@@ -6,10 +6,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "./scripts/build.sh",
-    "lint": "eslint src/**/*.ts",
-    "prepare": "npm run build",
-    "test": "mocha test/*.spec.js",
-    "clean": "rm -rf dist"
+		"test": "mocha test/*.spec.js",
+		"clean": "rm -rf dist",
+		"publish": "npm publish --access public"
   },
   "keywords": [
     "vad",
