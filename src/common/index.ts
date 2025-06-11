@@ -19,5 +19,5 @@ export type {
   SpeechProbabilities,
   Model,
   ModelFactory
-} from "./models/index";
-export { SileroLegacy, SileroV5 } from "./models/index";
+} from "./models";
+export { SileroLegacy, SileroV5 } from "./models";

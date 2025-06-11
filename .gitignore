@@ -9,10 +9,6 @@ lib/
 dist/
 *.tsbuildinfo
 
-# Models
-models/
-*.onnx
-
 # Testing
 coverage/
 .nyc_output
@@ -44,9 +40,3 @@ logs
 *.tmp
 *.temp
 .cache/
-
-# Audio files for testing
-*.wav
-*.mp3
-*.m4a
-*.flac 
