@@ -1,4 +1,4 @@
-import type { OrtOptions } from "./common";
+import type { OrtOptions } from "./common/models";
 import {
   FrameProcessor,
   type FrameProcessorEvent,
@@ -15,7 +15,6 @@ import {
   type SpeechProbabilities,
 } from "./common/models";
 import { Resampler } from "./common/resampler";
-import { log } from "./common/logging";
 
 export type ModelVersion = "v5" | "legacy";
 export const DEFAULT_MODEL: ModelVersion = "v5";

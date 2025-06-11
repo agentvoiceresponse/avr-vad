@@ -336,7 +336,6 @@ avr-vad/
 │       ├── non-real-time-vad.ts  # Batch processing VAD
 │       ├── utils.ts               # Utility functions
 │       ├── resampler.ts           # Audio resampling
-│       └── models/                # Model definitions
 ├── dist/                          # Compiled JavaScript
 ├── test/                          # Test files
 ├── silero_vad_v5.onnx            # Silero VAD v5 model
