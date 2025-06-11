@@ -16,7 +16,7 @@ import {
   type OrtModule,
   type OrtOptions,
   SileroLegacy,
-} from "./models";
+} from "./models/index";
 import { Resampler } from "./resampler";
 
 interface NonRealTimeVADSpeechData {

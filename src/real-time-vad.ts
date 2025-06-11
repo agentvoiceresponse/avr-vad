@@ -1,4 +1,4 @@
-import type { OrtOptions } from "./common/models";
+import type { OrtOptions } from "./common/models/index";
 import {
   FrameProcessor,
   type FrameProcessorEvent,
@@ -13,7 +13,7 @@ import {
   SileroLegacy,
   SileroV5,
   type SpeechProbabilities,
-} from "./common/models";
+} from "./common/models/index";
 import { Resampler } from "./common/resampler";
 
 export type ModelVersion = "v5" | "legacy";

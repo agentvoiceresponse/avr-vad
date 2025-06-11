@@ -10,7 +10,7 @@ export * from "./logging";
 export * from "./messages";
 export * from "./resampler";
 
-// Explicit exports from models
+// Explicit exports from models with explicit paths
 export type { 
   OrtOptions, 
   OrtConfigurer, 
@@ -19,5 +19,5 @@ export type {
   SpeechProbabilities,
   Model,
   ModelFactory
-} from "./models";
-export { SileroLegacy, SileroV5 } from "./models";
+} from "./models/index";
+export { SileroLegacy, SileroV5 } from "./models/index";
