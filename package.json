@@ -26,7 +26,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "onnxruntime-node": "^1.23.0-dev.20250602-03b22ffc42"
+    "onnxruntime-node": "^1.22.0-rev"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
