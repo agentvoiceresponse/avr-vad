@@ -15,6 +15,7 @@ import {
   type SpeechProbabilities,
 } from "./common/models";
 import { Resampler } from "./common/resampler";
+import { log } from "./common/logging";
 
 export type ModelVersion = "v5" | "legacy";
 export const DEFAULT_MODEL: ModelVersion = "v5";
@@ -112,7 +113,7 @@ export class RealTimeVAD {
       }
     );
 
-    if (options.sampleRate !== 16000) {
+    if (options.sampleRate > 16000) {
       this.resampler = new Resampler({
         nativeSampleRate: options.sampleRate,
         targetSampleRate: 16000,
