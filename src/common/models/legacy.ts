@@ -35,6 +35,10 @@ export class SileroLegacy {
     this._c = new this.ortInstance.Tensor("float32", zeroes, [2, 1, 64]);
   };
 
+  destroy = async (): Promise<void> => {
+    await this._session.release();
+  };
+
   process = async (audioFrame: Float32Array): Promise<SpeechProbabilities> => {
     const t = new this.ortInstance.Tensor("float32", audioFrame, [
       1,

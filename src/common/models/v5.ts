@@ -31,6 +31,10 @@ export class SileroV5 {
     this._state = getNewState(this.ortInstance);
   };
 
+  destroy = async (): Promise<void> => {
+    await this._session.release();
+  };
+
   process = async (audioFrame: Float32Array): Promise<SpeechProbabilities> => {
     const t = new this.ortInstance.Tensor("float32", audioFrame, [
       1,
