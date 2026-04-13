@@ -12,6 +12,7 @@ import {
 } from "./frame-processor";
 import { Message } from "./messages";
 import {
+  type Model,
   type ModelFetcher,
   type OrtModule,
   type OrtOptions,
@@ -72,7 +73,8 @@ export class NonRealTimeVAD {
       modelFetcher,
       ortInstance,
       fullOptions,
-      frameProcessor
+      frameProcessor,
+      model
     );
     return vad;
   }
@@ -81,8 +83,14 @@ export class NonRealTimeVAD {
     public modelFetcher: ModelFetcher,
     public ort: OrtModule,
     public options: NonRealTimeVADOptions,
-    public frameProcessor: FrameProcessorInterface
+    public frameProcessor: FrameProcessorInterface,
+    private model: Model
   ) {}
+
+  /** Release the underlying ONNX session */
+  async destroy(): Promise<void> {
+    await this.model.destroy();
+  }
 
   async *run(
     inputAudio: Float32Array,
