@@ -227,9 +227,10 @@ export class RealTimeVAD {
     }
   };
 
-  /** Clean up resources */
-  destroy(): void {
+  /** Clean up resources and release the underlying ONNX session */
+  async destroy(): Promise<void> {
     this.pause();
     this.reset();
+    await this.modelInstance.destroy();
   }
 }
